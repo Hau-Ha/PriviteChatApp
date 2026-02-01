@@ -6,7 +6,7 @@ import authRoute from "./routes/authRoute.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.PORT || 5003;
 
 //middlewares
 app.use(express.json());
