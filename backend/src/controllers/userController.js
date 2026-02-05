@@ -1,3 +1,4 @@
+// @ts-ignore
 export const authMe = async (req, res) => {
   try {
     const user = req.user; // user info attached by auth middleware

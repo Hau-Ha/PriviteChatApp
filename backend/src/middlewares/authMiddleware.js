@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 // Middleware to protect routes, authenticate using access token for user
+// @ts-ignore
 export const protectedRoute = async (req, res, next) => {
   try {
     // get token from headers
@@ -14,12 +15,14 @@ export const protectedRoute = async (req, res, next) => {
     //comfirm token correct
     jwt.verify(
       token,
+      // @ts-ignore
       process.env.ACCESS_TOKEN_SECRET_KEY,
       async (err, decodedUser) => {
         if (err) {
           return res.status(403).json({ message: "Invalid access token" });
         }
         //find user from token
+        // @ts-ignore
         const user = await User.findById(decodedUser.userId).select(
           "-hashedPassword"
         );

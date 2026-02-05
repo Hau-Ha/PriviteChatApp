@@ -6,6 +6,8 @@ import { Label } from "../ui/label";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { useNavigate } from "react-router";
 
 const SignUpSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -21,6 +23,8 @@ export function SignUpForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const { signUp } = useAuthStore();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -30,8 +34,13 @@ export function SignUpForm({
   });
 
   const onSubmit = async (data: SignupFormValue) => {
-    console.log("Form Data:", data);
-    // Handle form submission logic here
+    const { firstName, lastName, userName, email, password } = data;
+    try {
+      await signUp(userName, password, email, firstName, lastName);
+      navigate("/signin");
+    } catch (error) {
+      console.error("Sign Up Error:", error);
+    }
   };
 
   return (

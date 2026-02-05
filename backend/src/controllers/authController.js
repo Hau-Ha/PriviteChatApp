@@ -7,6 +7,7 @@ import Session from "../models/Session.js";
 const ACCESS_TOKEN_TTL = "30m"; // 15 minutes
 const REFRESH_TOKEN_TTL = 14 * 24 * 60 * 60 * 1000; // 14 days in seconds
 
+// @ts-ignore
 export const signUp = async (req, res) => {
   try {
     const { username, password, email, firstName, lastName } = req.body;
@@ -43,6 +44,7 @@ export const signUp = async (req, res) => {
   }
 };
 
+// @ts-ignore
 export const signIn = async (req, res) => {
   try {
     // take inputs
@@ -70,6 +72,7 @@ export const signIn = async (req, res) => {
     //if correct , create access token with jwt
     const accessToken = jwt.sign(
       { userId: user._id },
+      // @ts-ignore
       process.env.ACCESS_TOKEN_SECRET_KEY,
       { expiresIn: ACCESS_TOKEN_TTL }
     );
@@ -98,6 +101,7 @@ export const signIn = async (req, res) => {
   }
 };
 
+// @ts-ignore
 export const signOut = async (req, res) => {
   try {
     // get refresh token from cookie
