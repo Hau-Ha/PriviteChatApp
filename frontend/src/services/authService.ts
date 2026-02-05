@@ -52,4 +52,27 @@ export const authService = {
       throw error;
     }
   },
+
+  fetchMe: async () => {
+    try {
+      const response = await api.get("/users/me", { withCredentials: true });
+      return response.data.user; // user data
+    } catch (error) {
+      console.error("Fetch Me Error:", error);
+      throw error;
+    }
+  },
+  refreshToken: async () => {
+    try {
+      const response = await api.post(
+        "/auth/refresh",
+        {},
+        { withCredentials: true }
+      );
+      return response.data.accessToken; // new access token
+    } catch (error) {
+      console.error("Refresh Token Error:", error);
+      throw error;
+    }
+  },
 };
