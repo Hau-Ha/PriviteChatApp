@@ -7,7 +7,6 @@ const ProtectedRoute = () => {
   const [starting, setStarting] = useState(true);
 
   const init = async () => {
-    // có thể xảy ra khi refresh trang
     if (!accessToken) {
       await refreshToken();
     }
@@ -20,6 +19,7 @@ const ProtectedRoute = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     init();
   }, []);
 
