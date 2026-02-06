@@ -104,23 +104,18 @@ export const signIn = async (req, res) => {
 // @ts-ignore
 export const signOut = async (req, res) => {
   try {
-    // get refresh token from cookie
     const token = req.cookies?.refreshToken;
 
-    //delete refresh token from Seession collection
     if (token) {
-      await Session.findOneAndDelete({ refreshToken: token });
-      //clear cookie
-      res.clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-      });
-      return res.status(204).json({ message: "Sign out successful" });
+      await Session.deleteOne({ refreshToken: token });
+
+      res.clearCookie("refreshToken");
     }
+
+    return res.sendStatus(204);
   } catch (error) {
-    console.error("Error during sign out:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("erro", error);
+    return res.status(500).json({ message: "error" });
   }
 };
 
