@@ -1,0 +1,429 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Ptivire chat app API",
+    "version": "1.0.0",
+    "description": "Moji chat backend API"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5003/api"
+    }
+  ],
+  "tags": [
+    { "name": "Authentication" },
+    { "name": "Users" },
+    { "name": "Friends" },
+    { "name": "Conversations" },
+    { "name": "Messages" }
+  ],
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "summary": "Sign up",
+        "tags": ["Authentication"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignUpRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created" },
+          "400": { "description": "Invalid input" }
+        }
+      }
+    },
+
+    "/auth/signin": {
+      "post": {
+        "summary": "Sign in",
+        "tags": ["Authentication"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignInRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed in",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+
+    "/auth/signout": {
+      "post": {
+        "summary": "Sign out",
+        "tags": ["Authentication"],
+        "responses": {
+          "200": { "description": "Signed out" }
+        }
+      }
+    },
+
+    "/auth/refresh": {
+      "post": {
+        "summary": "Refresh access token",
+        "tags": ["Authentication"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "New access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/users/me": {
+      "get": {
+        "summary": "Get current user",
+        "tags": ["Users"],
+        "responses": {
+          "200": {
+            "description": "Current user",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/friends/requests": {
+      "post": {
+        "summary": "Send friend request",
+        "tags": ["Friends"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/FriendRequestCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Request sent" }
+        }
+      },
+      "get": {
+        "summary": "Get friend requests",
+        "tags": ["Friends"],
+        "responses": {
+          "200": {
+            "description": "List friend requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/FriendRequest" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/friends/requests/{requestId}/accept": {
+      "post": {
+        "summary": "Accept friend request",
+        "tags": ["Friends"],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Friend request accepted" }
+        }
+      }
+    },
+
+    "/friends/requests/{requestId}/decline": {
+      "post": {
+        "summary": "Decline friend request",
+        "tags": ["Friends"],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Friend request declined" }
+        }
+      }
+    },
+
+    "/friends": {
+      "get": {
+        "summary": "Get all friends",
+        "tags": ["Friends"],
+        "responses": {
+          "200": {
+            "description": "Friends list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/User" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/conversations": {
+      "post": {
+        "summary": "Create conversation",
+        "tags": ["Conversations"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ConversationCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Conversation created" }
+        }
+      },
+      "get": {
+        "summary": "Get conversations",
+        "tags": ["Conversations"],
+        "responses": {
+          "200": {
+            "description": "Conversation list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Conversation" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/conversations/{conversationId}/messages": {
+      "get": {
+        "summary": "Get messages",
+        "tags": ["Conversations"],
+        "parameters": [
+          {
+            "name": "conversationId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Message" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/messages/direct": {
+      "post": {
+        "summary": "Send direct message",
+        "tags": ["Messages"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DirectMessageCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Message sent" }
+        }
+      }
+    },
+
+    "/messages/group": {
+      "post": {
+        "summary": "Send group message",
+        "tags": ["Messages"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GroupMessageCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Message sent" }
+        }
+      }
+    }
+  },
+
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+
+    "schemas": {
+      "SignUpRequest": {
+        "type": "object",
+        "required": ["username", "password", "email"],
+        "properties": {
+          "username": { "type": "string" },
+          "password": { "type": "string", "format": "password" },
+          "email": { "type": "string", "format": "email" },
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" }
+        }
+      },
+
+      "SignInRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": { "type": "string" },
+          "password": { "type": "string", "format": "password" }
+        }
+      },
+
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "accessToken": { "type": "string" }
+        }
+      },
+
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "username": { "type": "string" },
+          "displayName": { "type": "string" },
+          "avatarUrl": { "type": "string" }
+        }
+      },
+
+      "FriendRequestCreate": {
+        "type": "object",
+        "required": ["to"],
+        "properties": {
+          "to": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      },
+
+      "FriendRequest": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "from": { "$ref": "#/components/schemas/User" },
+          "message": { "type": "string" }
+        }
+      },
+
+      "ConversationCreate": {
+        "type": "object",
+        "required": ["type", "memberIds"],
+        "properties": {
+          "type": { "type": "string", "enum": ["direct", "group"] },
+          "name": { "type": "string" },
+          "memberIds": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+
+      "Conversation": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "type": { "type": "string" }
+        }
+      },
+
+      "Message": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "sender": { "$ref": "#/components/schemas/User" },
+          "content": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+
+      "DirectMessageCreate": {
+        "type": "object",
+        "required": ["recipientId", "content"],
+        "properties": {
+          "recipientId": { "type": "string" },
+          "content": { "type": "string" }
+        }
+      },
+
+      "GroupMessageCreate": {
+        "type": "object",
+        "required": ["conversationId", "content"],
+        "properties": {
+          "conversationId": { "type": "string" },
+          "content": { "type": "string" }
+        }
+      }
+    }
+  },
+
+  "security": [{ "bearerAuth": [] }]
+}
