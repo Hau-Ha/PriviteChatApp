@@ -86,6 +86,39 @@ export const useChatStore = create<ChatState>()(
           set({ messageLoading: false });
         }
       },
+      sendDirectMessage: async (recipientId, content, imgUrl) => {
+        try {
+          const { activeConversationId } = get();
+          await chatService.sendDirectMessage(
+            recipientId,
+            content,
+            imgUrl,
+            activeConversationId || undefined
+          );
+
+          set((state) => ({
+            conversations: state.conversations.map((convo) =>
+              convo._id === activeConversationId
+                ? { ...convo, seenBy: [] }
+                : convo
+            ),
+          }));
+        } catch (error) {
+          console.error("Error when sendDirectMessage:", error);
+        }
+      },
+      sendGroupMessage: async (conversationId, content, imgUrl) => {
+        try {
+          await chatService.sendGroupMessage(conversationId, content, imgUrl);
+          set((state) => ({
+            conversations: state.conversations.map((convo) =>
+              convo._id === conversationId ? { ...convo, seenBy: [] } : convo
+            ),
+          }));
+        } catch (error) {
+          console.error("Error when sendGroupMessage:", error);
+        }
+      },
       // addConversation: (conversation) => {},
       // addMessage: (conversationId, message) => {},
       // updateConversation: (id, conversation) => {},
