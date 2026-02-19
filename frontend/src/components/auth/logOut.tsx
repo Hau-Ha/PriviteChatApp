@@ -1,23 +1,26 @@
 import { Button } from "../ui/button";
-import { useNavigate } from "react-router";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { LogOut } from "lucide-react";
+import { useNavigate } from "react-router";
 
-function LogOut() {
+const Logout = () => {
   const { signOut } = useAuthStore();
   const navigate = useNavigate();
-  const handelLogOut = async () => {
+  const handleLogout = async () => {
     try {
       await signOut();
       navigate("/signin");
     } catch (error) {
-      console.error("Log Out Error:", error);
+      console.error(error);
     }
   };
+
   return (
-    <Button onClick={handelLogOut} variant="destructive">
-      Log Out
+    <Button variant="completeGhost" onClick={handleLogout}>
+      <LogOut className="text-destructive" />
+      Log out
     </Button>
   );
-}
+};
 
-export default LogOut;
+export default Logout;

@@ -4,6 +4,9 @@ import { cn } from "@/lib/utils";
 
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useChatStore } from "@/stores/useChatStore";
+import UserAvatar from "./UserAvatar";
+import StatusBadge from "./StatusBadge";
+import UnreadCountBadge from "./UnreadCountBadge";
 
 const DirectMessageCard = ({ convo }: { convo: Conversation }) => {
   const { user } = useAuthStore();
@@ -37,7 +40,18 @@ const DirectMessageCard = ({ convo }: { convo: Conversation }) => {
         isActive={activeConversationId === convo._id}
         onSelect={handleSelectConversation}
         unreadCount={unreadCount}
-        leftSection={<>{/* Todo: useravata */}</>}
+        leftSection={
+          <>
+            <UserAvatar
+              type="sidebar"
+              name={otherUser.displayName ?? ""}
+              avatarUrl={otherUser.avatarUrl ?? undefined}
+            />
+            {/* todo socketio */}
+            <StatusBadge status="offline" />
+            {unreadCount > 0 && <UnreadCountBadge unreadCount={unreadCount} />}
+          </>
+        }
         subtitle={
           <p
             className={cn(
