@@ -1,4 +1,5 @@
 import type { User } from "./user";
+import type { Conversation, Message } from "./chat";
 
 export interface AuthState {
   accessToken: string | null;
@@ -18,4 +19,51 @@ export interface AuthState {
   signOut: () => Promise<void>;
   fetchMe: () => Promise<void>;
   refreshToken: () => Promise<void>;
+}
+
+export interface ThemeState {
+  isDark: boolean;
+  toggleTheme: () => void;
+  setTheme: (isDark: boolean) => void;
+}
+export interface ChatState {
+  conversations: Conversation[];
+  messages: Record<
+    string,
+    {
+      items: Message[];
+      hasMore: boolean; // infinite-scroll
+      nextCursor?: string | null;
+    }
+  >;
+  activeConversationId: string | null;
+  convoLoading: boolean;
+  messageLoading: boolean;
+  loading: boolean;
+  reset: () => void;
+
+  setActiveConversation: (id: string | null) => void;
+  fetchConversations: () => Promise<void>;
+  // fetchMessages: (conversationId?: string) => Promise<void>;
+  // sendDirectMessage: (
+  //   recipientId: string,
+  //   content: string,
+  //   imgUrl?: string
+  // ) => Promise<void>;
+  // sendGroupMessage: (
+  //   conversationId: string,
+  //   content: string,
+  //   imgUrl?: string
+  // ) => Promise<void>;
+  // // add message
+  // addMessage: (message: Message) => Promise<void>;
+  // // update convo
+  // updateConversation: (conversation: unknown) => void;
+  // markAsSeen: () => Promise<void>;
+  // addConvo: (convo: Conversation) => void;
+  // createConversation: (
+  //   type: "group" | "direct",
+  //   name: string,
+  //   memberIds: string[]
+  // ) => Promise<void>;
 }
