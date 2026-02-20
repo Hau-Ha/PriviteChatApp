@@ -80,7 +80,7 @@ export const useChatStore = create<ChatState>()(
             };
           });
         } catch (error) {
-          console.error("Lỗi xảy ra khi fetchMessages:", error);
+          console.error("Erro when fetchMessages:", error);
         } finally {
           set({ messageLoading: false });
         }
@@ -112,7 +112,7 @@ export const useChatStore = create<ChatState>()(
             ),
           }));
         } catch (error) {
-          console.error("Lỗi xảy ra gửi group message", error);
+          console.error("Erro when sent group message", error);
         }
       },
       addMessage: async (message) => {
@@ -148,7 +148,7 @@ export const useChatStore = create<ChatState>()(
             };
           });
         } catch (error) {
-          console.error("Lỗi xảy khi ra add message:", error);
+          console.error("Erro add message:", error);
         }
       },
       updateConversation: (conversation) => {
@@ -195,7 +195,7 @@ export const useChatStore = create<ChatState>()(
             ),
           }));
         } catch (error) {
-          console.error("Lỗi xảy ra khi gọi markAsSeen trong store", error);
+          console.error("Erro when  markAsSeen in store", error);
         }
       },
       addConvo: (convo) => {
@@ -227,10 +227,7 @@ export const useChatStore = create<ChatState>()(
             .getState()
             .socket?.emit("join-conversation", conversation._id);
         } catch (error) {
-          console.error(
-            "Lỗi xảy ra khi gọi createConversation trong store",
-            error
-          );
+          console.error("Erro when call createConversation in store", error);
         } finally {
           set({ loading: false });
         }

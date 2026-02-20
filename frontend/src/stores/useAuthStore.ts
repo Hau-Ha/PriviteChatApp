@@ -4,7 +4,6 @@ import { authService } from "@/services/authService";
 import type { AuthState } from "@/types/store";
 import { persist } from "zustand/middleware";
 import { useChatStore } from "./useChatStore";
-import { useSocketStore } from "@/stores/useSocketStore";
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -16,17 +15,20 @@ export const useAuthStore = create<AuthState>()(
       setAccessToken: (accessToken) => {
         set({ accessToken });
       },
+      setUser: (user) => {
+        set({ user });
+      },
       clearState: () => {
         set({ accessToken: null, user: null, loading: false });
-        localStorage.clear();
         useChatStore.getState().reset();
+        localStorage.clear();
+        sessionStorage.clear();
       },
-
       signUp: async (username, password, email, firstName, lastName) => {
         try {
           set({ loading: true });
 
-          //  call api
+          // Call API
           await authService.signUp(
             username,
             password,
@@ -35,21 +37,20 @@ export const useAuthStore = create<AuthState>()(
             lastName
           );
 
-          toast.success(" Account created successfully. Please sign in.");
+          toast.success(
+            "Sign up successful! You will be redirected to the login page."
+          );
         } catch (error) {
           console.error(error);
-          toast.error(" Failed to create account. Please try again.");
+          toast.error("Sign up failed");
         } finally {
           set({ loading: false });
         }
       },
-
       signIn: async (username, password) => {
         try {
+          get().clearState();
           set({ loading: true });
-
-          localStorage.clear();
-          useChatStore.getState().reset();
 
           const { accessToken } = await authService.signIn(username, password);
           get().setAccessToken(accessToken);
@@ -57,34 +58,24 @@ export const useAuthStore = create<AuthState>()(
           await get().fetchMe();
           useChatStore.getState().fetchConversations();
 
-          toast.success(" Signed in successfully.");
+          toast.success("Welcome back to ChatApp!");
         } catch (error) {
           console.error(error);
-          toast.error(
-            " Failed to sign in. Please check your credentials and try again."
-          );
+          toast.error("Sign in failed!");
         } finally {
           set({ loading: false });
         }
       },
-
       signOut: async () => {
         try {
-          // 1️⃣ disconnect socket
-          const { socket } = useSocketStore.getState();
-          socket?.disconnect();
-
-          // 2️⃣ clear socket store
-          useSocketStore.setState({ socket: null, onlineUsers: [] });
           get().clearState();
           await authService.signOut();
-          toast.success(" Signed out successfully.");
+          toast.success("Logout successful!");
         } catch (error) {
           console.error(error);
-          toast.error("   Failed to sign out. Please try again.");
+          toast.error("Error occurred during logout. Please try again!");
         }
       },
-
       fetchMe: async () => {
         try {
           set({ loading: true });
@@ -94,13 +85,12 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error(error);
           set({ user: null, accessToken: null });
-          toast.error(" Failed to fetch user data. Please sign in again.");
+          toast.error("Error fetching user data. Please try again!");
         } finally {
           set({ loading: false });
         }
       },
-
-      refreshToken: async () => {
+      refresh: async () => {
         try {
           set({ loading: true });
           const { user, fetchMe, setAccessToken } = get();
@@ -113,7 +103,7 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch (error) {
           console.error(error);
-          toast.error(" Failed to refresh token. Please sign in again.");
+          toast.error("Session expired. Please login again!");
           get().clearState();
         } finally {
           set({ loading: false });
@@ -122,7 +112,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
-      partialize: (state) => ({ user: state.user }),
+      partialize: (state) => ({ user: state.user }), // persist only user
     }
   )
 );

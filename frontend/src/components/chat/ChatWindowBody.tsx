@@ -40,7 +40,7 @@ const ChatWindowBody = () => {
     setLastMessageStatus(seenBy.length > 0 ? "seen" : "delivered");
   }, [selectedConvo]);
 
-  // kéo xuống dưới khi load convo
+  // scroll to bottom when change convo
   useLayoutEffect(() => {
     if (!messagesEndRef.current) return;
 
@@ -58,7 +58,7 @@ const ChatWindowBody = () => {
     try {
       await fetchMessages(activeConversationId);
     } catch (error) {
-      console.error("Lỗi xảy ra khi fetch thêm tin", error);
+      console.error("Error when fetch message", error);
     }
   };
 
@@ -98,7 +98,7 @@ const ChatWindowBody = () => {
   if (!messages?.length) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground ">
-        Chưa có tin nhắn nào trong cuộc trò chuyện này.
+        Do not have any messages yet, say hi to your friend!
       </div>
     );
   }
@@ -117,7 +117,7 @@ const ChatWindowBody = () => {
           next={fetchMoreMessages}
           hasMore={hasMore}
           scrollableTarget="scrollableDiv"
-          loader={<p>Đang tải...</p>}
+          loader={<p>Loadding..</p>}
           inverse={true}
           style={{
             display: "flex",

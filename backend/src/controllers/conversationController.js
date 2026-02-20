@@ -172,8 +172,8 @@ export const getMessages = async (req, res) => {
       nextCursor,
     });
   } catch (error) {
-    console.error("Lỗi xảy ra khi lấy messages", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    console.error("Erro messages", error);
+    return res.status(500).json({ message: "System" });
   }
 };
 
