@@ -113,6 +113,17 @@ export function SignInForm({
             />
           </div>
         </CardContent>
+        <CardContent className="p-6 md:p-8 border-t border-border">
+          <p className="text-sm text-muted-foreground text-center">
+            Don't have an account?{" "}
+            <a
+              href="/signup"
+              className="text-primary font-medium hover:underline"
+            >
+              Sign up
+            </a>
+          </p>
+        </CardContent>
       </Card>
     </div>
   );
