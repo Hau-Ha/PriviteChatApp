@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router";
 
 const ProtectedRoute = () => {
-  const { accessToken, user, loading, refreshToken, fetchMe } = useAuthStore();
+  const { accessToken, user, loading, refresh, fetchMe } = useAuthStore();
   const [starting, setStarting] = useState(true);
 
   const init = async () => {
     if (!accessToken) {
-      await refreshToken();
+      await refresh();
     }
 
     if (accessToken && !user) {
@@ -19,14 +19,15 @@ const ProtectedRoute = () => {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    init();
+    (async () => {
+      await init();
+    })();
   }, []);
 
   if (starting || loading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        Đang tải trang...
+        Loading...
       </div>
     );
   }

@@ -1,5 +1,6 @@
 import Conversation from "../models/Conversation.js";
 import Message from "../models/Message.js";
+import { io } from "../socket/index.js";
 
 // @ts-ignore
 export const createConversation = async (req, res) => {
@@ -225,7 +226,6 @@ export const markAsSeen = async (req, res) => {
       }
     );
 
-    // @ts-ignore
     io.to(conversationId).emit("read-message", {
       conversation: updated,
       lastMessage: {
@@ -250,7 +250,7 @@ export const markAsSeen = async (req, res) => {
       myUnreadCount: updated?.unreadCounts[userId] || 0,
     });
   } catch (error) {
-    console.error("Lỗi khi mark as seen", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    console.error("Error when mark as seen", error);
+    return res.status(500).json({ message: "system Error" });
   }
 };

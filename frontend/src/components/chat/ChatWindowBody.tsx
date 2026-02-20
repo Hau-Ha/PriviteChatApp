@@ -1,6 +1,6 @@
 import { useChatStore } from "@/stores/useChatStore";
 import ChatWelcomeScreen from "./ChatWelcomeScreen";
-import MessageItem from "./MessageItem.tsx";
+import MessageItem from "./MessageItem";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 
@@ -40,6 +40,7 @@ const ChatWindowBody = () => {
     setLastMessageStatus(seenBy.length > 0 ? "seen" : "delivered");
   }, [selectedConvo]);
 
+  // kéo xuống dưới khi load convo
   useLayoutEffect(() => {
     if (!messagesEndRef.current) return;
 
@@ -97,7 +98,7 @@ const ChatWindowBody = () => {
   if (!messages?.length) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground ">
-        Have no messages yet, say hi to your friend! 👋
+        Chưa có tin nhắn nào trong cuộc trò chuyện này.
       </div>
     );
   }
@@ -116,7 +117,7 @@ const ChatWindowBody = () => {
           next={fetchMoreMessages}
           hasMore={hasMore}
           scrollableTarget="scrollableDiv"
-          loader={<p>Loading...</p>}
+          loader={<p>Đang tải...</p>}
           inverse={true}
           style={{
             display: "flex",
