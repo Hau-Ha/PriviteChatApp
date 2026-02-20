@@ -25,7 +25,7 @@ import FriendRequestDialog from "../friendRequest/FriendRequestDialog.tsx";
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
   const [friendRequestOpen, setFriendRequestOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [_profileOpen, setProfileOpen] = useState(false);
 
   return (
     <>

@@ -11,7 +11,7 @@ export const useChatStore = create<ChatState>()(
       conversations: [],
       messages: {},
       activeConversationId: null,
-      convoLoading: false,
+      convoLoading: false, // convo loading
       messageLoading: false,
       loading: false,
 
@@ -32,7 +32,7 @@ export const useChatStore = create<ChatState>()(
 
           set({ conversations, convoLoading: false });
         } catch (error) {
-          console.error("Error fetching conversations:", error);
+          console.error("Lỗi xảy ra khi fetchConversations:", error);
           set({ convoLoading: false });
         }
       },
@@ -80,7 +80,7 @@ export const useChatStore = create<ChatState>()(
             };
           });
         } catch (error) {
-          console.error("Error fetching messages:", error);
+          console.error("Erro when fetchMessages:", error);
         } finally {
           set({ messageLoading: false });
         }
@@ -100,7 +100,7 @@ export const useChatStore = create<ChatState>()(
             ),
           }));
         } catch (error) {
-          console.error("Error sending direct message:", error);
+          console.error("Lỗi xảy ra khi gửi direct message", error);
         }
       },
       sendGroupMessage: async (conversationId, content, imgUrl) => {
@@ -112,7 +112,7 @@ export const useChatStore = create<ChatState>()(
             ),
           }));
         } catch (error) {
-          console.error("Error sending group message:", error);
+          console.error("Erro when sent group message", error);
         }
       },
       addMessage: async (message) => {
@@ -148,12 +148,14 @@ export const useChatStore = create<ChatState>()(
             };
           });
         } catch (error) {
-          console.error("Error adding message:", error);
+          console.error("Error add message:", error);
         }
       },
+
       updateConversation: (conversation) => {
         set((state) => ({
           conversations: state.conversations.map((c) =>
+            // @ts-ignore
             c._id === conversation._id ? { ...c, ...conversation } : c
           ),
         }));
@@ -195,7 +197,7 @@ export const useChatStore = create<ChatState>()(
             ),
           }));
         } catch (error) {
-          console.error("Error marking as seen in store:", error);
+          console.error("Erro when  markAsSeen in store", error);
         }
       },
       addConvo: (convo) => {
@@ -227,7 +229,7 @@ export const useChatStore = create<ChatState>()(
             .getState()
             .socket?.emit("join-conversation", conversation._id);
         } catch (error) {
-          console.error("Error creating conversation in store:", error);
+          console.error("Erro when call createConversation in store", error);
         } finally {
           set({ loading: false });
         }
