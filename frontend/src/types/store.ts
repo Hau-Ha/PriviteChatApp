@@ -1,3 +1,4 @@
+import type { Socket } from "socket.io-client";
 import type { User } from "./user";
 import type { Conversation, Message } from "./chat";
 
@@ -55,10 +56,10 @@ export interface ChatState {
     content: string,
     imgUrl?: string
   ) => Promise<void>;
-  // // add message
-  // addMessage: (message: Message) => Promise<void>;
-  // // update convo
-  // updateConversation: (conversation: unknown) => void;
+  // add message
+  addMessage: (message: Message) => Promise<void>;
+  // update convo
+  updateConversation: (conversation: Conversation) => void;
   // markAsSeen: () => Promise<void>;
   // addConvo: (convo: Conversation) => void;
   // createConversation: (
@@ -66,4 +67,11 @@ export interface ChatState {
   //   name: string,
   //   memberIds: string[]
   // ) => Promise<void>;
+}
+
+export interface SocketState {
+  socket: Socket | null;
+  onlineUsers: string[];
+  connectSocket: () => void;
+  disconnectSocket: () => void;
 }

@@ -1,8 +1,9 @@
+import { chatService } from "@/services/chatService";
+import type { ChatState } from "@/types/store";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { ChatState } from "@/types/store";
-import { chatService } from "@/services/chatService";
 import { useAuthStore } from "./useAuthStore";
+// import { useSocketStore } from "./useSocketStore";
 
 export const useChatStore = create<ChatState>()(
   persist(
@@ -10,13 +11,11 @@ export const useChatStore = create<ChatState>()(
       conversations: [],
       messages: {},
       activeConversationId: null,
-      loading: false,
       convoLoading: false,
       messageLoading: false,
+      loading: false,
 
-      setActiveConversation: (id) => {
-        set({ activeConversationId: id });
-      },
+      setActiveConversation: (id) => set({ activeConversationId: id }),
       reset: () => {
         set({
           conversations: [],
@@ -33,7 +32,7 @@ export const useChatStore = create<ChatState>()(
 
           set({ conversations, convoLoading: false });
         } catch (error) {
-          console.error("Erro when fetchConvertation", error);
+          console.error("Error occurred while fetching conversations:", error);
           set({ convoLoading: false });
         }
       },
@@ -81,7 +80,7 @@ export const useChatStore = create<ChatState>()(
             };
           });
         } catch (error) {
-          console.error("Error when fetchMessages:", error);
+          console.error("Error occurred while fetching messages:", error);
         } finally {
           set({ messageLoading: false });
         }
@@ -95,40 +94,150 @@ export const useChatStore = create<ChatState>()(
             imgUrl,
             activeConversationId || undefined
           );
-
           set((state) => ({
-            conversations: state.conversations.map((convo) =>
-              convo._id === activeConversationId
-                ? { ...convo, seenBy: [] }
-                : convo
+            conversations: state.conversations.map((c) =>
+              c._id === activeConversationId ? { ...c, seenBy: [] } : c
             ),
           }));
         } catch (error) {
-          console.error("Error when sendDirectMessage:", error);
+          console.error("Error occurred while sending direct message", error);
         }
       },
       sendGroupMessage: async (conversationId, content, imgUrl) => {
         try {
           await chatService.sendGroupMessage(conversationId, content, imgUrl);
           set((state) => ({
-            conversations: state.conversations.map((convo) =>
-              convo._id === conversationId ? { ...convo, seenBy: [] } : convo
+            conversations: state.conversations.map((c) =>
+              c._id === get().activeConversationId ? { ...c, seenBy: [] } : c
             ),
           }));
         } catch (error) {
-          console.error("Error when sendGroupMessage:", error);
+          console.error("Error occurred while sending group message", error);
         }
       },
-      // addConversation: (conversation) => {},
-      // addMessage: (conversationId, message) => {},
-      // updateConversation: (id, conversation) => {},
-      // updateMessage: (conversationId, messageId, message) => {},
-      // deleteConversation: (id) => {},
-      // deleteMessage: (conversationId, messageId) => {},
-      // clearMessages: (conversationId) => {},
-      // setLoading: (loading) => set({ loading }),
-      // setConvoLoading: (convoLoading) => set({ convoLoading }),
-      // setMessageLoading: (messageLoading) => set({ messageLoading }),
+      addMessage: async (message) => {
+        try {
+          const { user } = useAuthStore.getState();
+          const { fetchMessages } = get();
+
+          message.isOwn = message.senderId === user?._id;
+
+          const convoId = message.conversationId;
+
+          let prevItems = get().messages[convoId]?.items ?? [];
+
+          if (prevItems.length === 0) {
+            await fetchMessages(message.conversationId);
+            prevItems = get().messages[convoId]?.items ?? [];
+          }
+
+          set((state) => {
+            if (prevItems.some((m) => m._id === message._id)) {
+              return state;
+            }
+
+            return {
+              messages: {
+                ...state.messages,
+                [convoId]: {
+                  items: [...prevItems, message],
+                  hasMore: state.messages[convoId].hasMore,
+                  nextCursor: state.messages[convoId].nextCursor ?? undefined,
+                },
+              },
+            };
+          });
+        } catch (error) {
+          console.error("Error occurred while adding message:", error);
+        }
+      },
+      updateConversation: (conversation) => {
+        set((state) => ({
+          conversations: state.conversations.map((c) =>
+            c._id === conversation._id ? { ...c, ...conversation } : c
+          ),
+        }));
+      },
+      // markAsSeen: async () => {
+      //   try {
+      //     const { user } = useAuthStore.getState();
+      //     const { activeConversationId, conversations } = get();
+
+      //     if (!activeConversationId || !user) {
+      //       return;
+      //     }
+
+      //     const convo = conversations.find(
+      //       (c) => c._id === activeConversationId
+      //     );
+
+      //     if (!convo) {
+      //       return;
+      //     }
+
+      //     if ((convo.unreadCounts?.[user._id] ?? 0) === 0) {
+      //       return;
+      //     }
+
+      //     await chatService.markAsSeen(activeConversationId);
+
+      //     set((state) => ({
+      //       conversations: state.conversations.map((c) =>
+      //         c._id === activeConversationId && c.lastMessage
+      //           ? {
+      //               ...c,
+      //               unreadCounts: {
+      //                 ...c.unreadCounts,
+      //                 [user._id]: 0,
+      //               },
+      //             }
+      //           : c
+      //       ),
+      //     }));
+      //   } catch (error) {
+      //     console.error(
+      //       "Error occurred while calling markAsSeen in store",
+      //       error
+      //     );
+      //   }
+      // },
+      // addConvo: (convo) => {
+      //   set((state) => {
+      //     const exists = state.conversations.some(
+      //       (c) => c._id.toString() === convo._id.toString()
+      //     );
+
+      //     return {
+      //       conversations: exists
+      //         ? state.conversations
+      //         : [convo, ...state.conversations],
+      //       activeConversationId: convo._id,
+      //     };
+      //   });
+      // },
+      // createConversation: async (type, name, memberIds) => {
+      //   try {
+      //     set({ loading: true });
+      //     const conversation = await chatService.createConversation(
+      //       type,
+      //       name,
+      //       memberIds
+      //     );
+
+      //     get().addConvo(conversation);
+
+      //     useSocketStore
+      //       .getState()
+      //       .socket?.emit("join-conversation", conversation._id);
+      //   } catch (error) {
+      //     console.error(
+      //       "Error occurred while calling createConversation in store",
+      //       error
+      //     );
+      //   } finally {
+      //     set({ loading: false });
+      //   }
+      // },
     }),
     {
       name: "chat-storage",

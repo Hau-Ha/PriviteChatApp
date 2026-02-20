@@ -175,3 +175,82 @@ export const getMessages = async (req, res) => {
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
+
+// @ts-ignore
+export const getUserConversationsForSocketIO = async (userId) => {
+  try {
+    const conversations = await Conversation.find(
+      { "participants.userId": userId },
+      { _id: 1 }
+    );
+
+    return conversations.map((c) => c._id.toString());
+  } catch (error) {
+    console.error("Error fetch conversations: ", error);
+    return [];
+  }
+};
+
+// @ts-ignore
+export const markAsSeen = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const userId = req.user._id.toString();
+
+    const conversation = await Conversation.findById(conversationId).lean();
+
+    if (!conversation) {
+      return res.status(404).json({ message: "Conversation not found" });
+    }
+
+    const last = conversation.lastMessage;
+
+    if (!last) {
+      return res.status(200).json({ message: "No message mark as seen" });
+    }
+
+    // @ts-ignore
+    if (last.senderId.toString() === userId) {
+      return res.status(200).json({ message: "Sender no need mark as seen" });
+    }
+
+    const updated = await Conversation.findByIdAndUpdate(
+      conversationId,
+      {
+        $addToSet: { seenBy: userId },
+        $set: { [`unreadCounts.${userId}`]: 0 },
+      },
+      {
+        new: true,
+      }
+    );
+
+    // @ts-ignore
+    io.to(conversationId).emit("read-message", {
+      conversation: updated,
+      lastMessage: {
+        // @ts-ignore
+        _id: updated?.lastMessage._id,
+        // @ts-ignore
+        content: updated?.lastMessage.content,
+        // @ts-ignore
+        createdAt: updated?.lastMessage.createdAt,
+        sender: {
+          // @ts-ignore
+          _id: updated?.lastMessage.senderId,
+        },
+      },
+    });
+
+    return res.status(200).json({
+      message: "Marked as seen",
+      // @ts-ignore
+      seenBy: updated?.sennBy || [],
+      // @ts-ignore
+      myUnreadCount: updated?.unreadCounts[userId] || 0,
+    });
+  } catch (error) {
+    console.error("Lỗi khi mark as seen", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};

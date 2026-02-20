@@ -1,18 +1,21 @@
-import Message from "../models/Message.js";
 import Conversation from "../models/Conversation.js";
-import { updateConversationAfterCreateMessage } from "../utils/messageHelper.js";
+import Message from "../models/Message.js";
+import {
+  emitNewMessage,
+  updateConversationAfterCreateMessage,
+} from "../utils/messageHelper.js";
+import { io } from "../socket/index.js";
 
 // @ts-ignore
 export const sendDirectMessage = async (req, res) => {
   try {
-    const { recipientId, content, conversationId } = req.body || {};
-
+    const { recipientId, content, conversationId } = req.body;
     const senderId = req.user._id;
 
     let conversation;
 
     if (!content) {
-      return res.status(400).json({ message: "Conten is required" });
+      return res.status(400).json({ message: "Miss data" });
     }
 
     if (conversationId) {
@@ -41,12 +44,15 @@ export const sendDirectMessage = async (req, res) => {
 
     await conversation.save();
 
+    emitNewMessage(io, conversation, message);
+
     return res.status(201).json({ message });
   } catch (error) {
-    console.error("Erro", error);
-    return res.status(500).json({ message: "Sysem Erro" });
+    console.error("Error sending direct message", error);
+    return res.status(500).json({ message: "system error" });
   }
 };
+
 // @ts-ignore
 export const sendGroupMessage = async (req, res) => {
   try {
@@ -55,7 +61,7 @@ export const sendGroupMessage = async (req, res) => {
     const conversation = req.conversation;
 
     if (!content) {
-      return res.status(400).json("Thiếu nội dung");
+      return res.status(400).json("miss data");
     }
 
     const message = await Message.create({
@@ -67,10 +73,11 @@ export const sendGroupMessage = async (req, res) => {
     updateConversationAfterCreateMessage(conversation, message, senderId);
 
     await conversation.save();
+    emitNewMessage(io, conversation, message);
 
     return res.status(201).json({ message });
   } catch (error) {
-    console.error("Error sending group message:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error("Error sending group message", error);
+    return res.status(500).json({ message: "System erro" });
   }
 };

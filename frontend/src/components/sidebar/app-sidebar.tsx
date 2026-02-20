@@ -1,5 +1,4 @@
-"use client";
-
+import { NavUser } from "@/components/sidebar/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -21,12 +20,14 @@ import GroupChatList from "../chat/GroupChatList";
 import AddFriendModal from "../chat/AddFriendModal";
 import DirectMessageList from "../chat/DirectMessageList";
 import { useThemeStore } from "@/stores/useThemeStore";
-import { NavUser } from "./nav-user";
 import { useAuthStore } from "@/stores/useAuthStore";
+import ConversationSkeleton from "../skeleton/ConversationSkeleton";
+import { useChatStore } from "@/stores/useChatStore";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { isDark, toggleTheme } = useThemeStore();
   const { user } = useAuthStore();
+  const { convoLoading } = useChatStore();
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -41,7 +42,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <div className="flex w-full items-center px-2 justify-between">
-                  <h1 className="text-lg font-bold tracking-tight">ChatApp</h1>
+                  <h1 className="text-xl font-bold text-white">Moji</h1>
                   <div className="flex items-center gap-2">
                     <Sun className="size-4 text-white/80" />
                     <Switch
@@ -59,7 +60,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       {/* Content */}
-      <SidebarContent>
+      <SidebarContent className="beautiful-scrollbar">
         {/* New Chat */}
         <SidebarGroup>
           <SidebarGroupContent>
@@ -69,27 +70,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
         {/* Group Chat */}
         <SidebarGroup>
-          <SidebarGroupLabel className="uppercase">
-            Group Chat
-          </SidebarGroupLabel>
-          <SidebarGroupAction title="create group" className="cursor-pointer">
+          <div className="flex items-center justify-between">
+            <SidebarGroupLabel className="uppercase">
+              nhóm chat
+            </SidebarGroupLabel>
             <NewGroupChatModal />
-          </SidebarGroupAction>
+          </div>
+
           <SidebarGroupContent>
-            {/* Group Chat List */}
-            <GroupChatList />
+            {convoLoading ? <ConversationSkeleton /> : <GroupChatList />}
           </SidebarGroupContent>
         </SidebarGroup>
 
         {/* Dirrect Message */}
         <SidebarGroup>
-          <SidebarGroupLabel className="uppercase">Friends</SidebarGroupLabel>
-          <SidebarGroupAction title="add friend" className="cursor-pointer">
+          <SidebarGroupLabel className="uppercase">bạn bè</SidebarGroupLabel>
+          <SidebarGroupAction title="Kết Bạn" className="cursor-pointer">
             <AddFriendModal />
           </SidebarGroupAction>
+
           <SidebarGroupContent>
-            {/* Group Chat List */}
-            <DirectMessageList />
+            {convoLoading ? <ConversationSkeleton /> : <DirectMessageList />}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
