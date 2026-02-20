@@ -15,9 +15,9 @@ export const createConversation = async (req, res) => {
       !Array.isArray(memberIds) ||
       memberIds.length === 0
     ) {
-      return res.status(400).json({
-        message: "type, name (for group), and memberIds are required",
-      });
+      return res
+        .status(400)
+        .json({ message: "Group name and member list are required" });
     }
 
     let conversation;
@@ -56,9 +56,7 @@ export const createConversation = async (req, res) => {
     }
 
     if (!conversation) {
-      return res
-        .status(400)
-        .json({ message: "Invalid conversation type or missing parameters" });
+      return res.status(400).json({ message: "Invalid conversation type" });
     }
 
     await conversation.populate([
@@ -83,15 +81,19 @@ export const createConversation = async (req, res) => {
 
     if (type === "group") {
       memberIds.forEach((userId) => {
-        // @ts-ignore
         io.to(userId).emit("new-group", formatted);
       });
     }
 
+    if (type === "direct") {
+      io.to(userId).emit("new-group", formatted);
+      io.to(memberIds[0]).emit("new-group", formatted);
+    }
+
     return res.status(201).json({ conversation: formatted });
   } catch (error) {
-    console.error("Lỗi khi tạo conversation", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    console.error("Error creating conversation", error);
+    return res.status(500).json({ message: "System error" });
   }
 };
 
@@ -135,8 +137,8 @@ export const getConversations = async (req, res) => {
 
     return res.status(200).json({ conversations: formatted });
   } catch (error) {
-    console.error("Lỗi xảy ra khi lấy conversations", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    console.error("Error fetching conversations", error);
+    return res.status(500).json({ message: "System error" });
   }
 };
 
@@ -172,8 +174,8 @@ export const getMessages = async (req, res) => {
       nextCursor,
     });
   } catch (error) {
-    console.error("Erro messages", error);
-    return res.status(500).json({ message: "System" });
+    console.error("Error fetching messages", error);
+    return res.status(500).json({ message: "System error" });
   }
 };
 
@@ -187,7 +189,7 @@ export const getUserConversationsForSocketIO = async (userId) => {
 
     return conversations.map((c) => c._id.toString());
   } catch (error) {
-    console.error("Error fetch conversations: ", error);
+    console.error("Error fetching conversations: ", error);
     return [];
   }
 };
@@ -201,18 +203,20 @@ export const markAsSeen = async (req, res) => {
     const conversation = await Conversation.findById(conversationId).lean();
 
     if (!conversation) {
-      return res.status(404).json({ message: "Conversation not found" });
+      return res.status(404).json({ message: "Conversation does not exist" });
     }
 
     const last = conversation.lastMessage;
 
     if (!last) {
-      return res.status(200).json({ message: "No message mark as seen" });
+      return res.status(200).json({ message: "No messages to mark as seen" });
     }
 
     // @ts-ignore
     if (last.senderId.toString() === userId) {
-      return res.status(200).json({ message: "Sender no need mark as seen" });
+      return res
+        .status(200)
+        .json({ message: "Sender does not need to mark as seen" });
     }
 
     const updated = await Conversation.findByIdAndUpdate(
@@ -244,13 +248,12 @@ export const markAsSeen = async (req, res) => {
 
     return res.status(200).json({
       message: "Marked as seen",
-      // @ts-ignore
-      seenBy: updated?.sennBy || [],
+      seenBy: updated?.seenBy || [],
       // @ts-ignore
       myUnreadCount: updated?.unreadCounts[userId] || 0,
     });
   } catch (error) {
-    console.error("Error when mark as seen", error);
-    return res.status(500).json({ message: "system Error" });
+    console.error("Error marking as seen", error);
+    return res.status(500).json({ message: "System error" });
   }
 };

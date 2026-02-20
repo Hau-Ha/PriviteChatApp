@@ -1,19 +1,15 @@
 import Friend from "../models/Friend.js";
-import FriendRequest from "../models/FriendRequest.js";
 import User from "../models/User.js";
+import FriendRequest from "../models/FriendRequest.js";
 
 // @ts-ignore
 export const sendFriendRequest = async (req, res) => {
   try {
     const { to, message } = req.body;
 
-    const from = req.user._id; // from auth middleware
+    const from = req.user._id;
 
-    if (!to) {
-      return res.status(400).json({ message: "Recipient user ID is required" });
-    }
-
-    if (to === from.toString()) {
+    if (from === to) {
       return res
         .status(400)
         .json({ message: "Cannot send friend request to yourself" });
@@ -22,8 +18,9 @@ export const sendFriendRequest = async (req, res) => {
     const userExists = await User.exists({ _id: to });
 
     if (!userExists) {
-      return res.status(404).json({ message: "Recipient user not found" });
+      return res.status(404).json({ message: "User does not exist" });
     }
+
     let userA = from.toString();
     let userB = to.toString();
 
@@ -32,8 +29,8 @@ export const sendFriendRequest = async (req, res) => {
     }
 
     const [alreadyFriends, existingRequest] = await Promise.all([
-      Friend.exists({ userA, userB }),
-      FriendRequest.exists({
+      Friend.findOne({ userA, userB }),
+      FriendRequest.findOne({
         $or: [
           { from, to },
           { from: to, to: from },
@@ -42,13 +39,13 @@ export const sendFriendRequest = async (req, res) => {
     ]);
 
     if (alreadyFriends) {
-      return res.status(400).json({ message: "You are already friends" });
+      return res.status(400).json({ message: "Users are already friends" });
     }
 
     if (existingRequest) {
-      return res.status(400).json({
-        message: "A friend request already exists between you and this user",
-      });
+      return res
+        .status(400)
+        .json({ message: "Friend request already pending" });
     }
 
     const request = await FriendRequest.create({
@@ -57,10 +54,12 @@ export const sendFriendRequest = async (req, res) => {
       message,
     });
 
-    return res.status(201).json({ message: "Friend request sent", request });
+    return res
+      .status(201)
+      .json({ message: "Friend request sent successfully", request });
   } catch (error) {
-    console.error("Error sending friend request:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error sending friend request", error);
+    return res.status(500).json({ message: "System error" });
   }
 };
 
@@ -68,7 +67,8 @@ export const sendFriendRequest = async (req, res) => {
 export const acceptFriendRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
-    const userId = req.user._id; // from auth middleware
+    const userId = req.user._id;
+
     const request = await FriendRequest.findById(requestId);
 
     if (!request) {
@@ -76,11 +76,12 @@ export const acceptFriendRequest = async (req, res) => {
     }
 
     if (request.to.toString() !== userId.toString()) {
-      return res.status(403).json({
-        message: "You are not authorized to accept this friend request",
-      });
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to accept this request" });
     }
 
+    // @ts-ignore
     const friend = await Friend.create({
       userA: request.from,
       userB: request.to,
@@ -93,16 +94,16 @@ export const acceptFriendRequest = async (req, res) => {
       .lean();
 
     return res.status(200).json({
-      message: "Friend request accepted",
-      friend: {
+      message: "Friend request accepted successfully",
+      newFriend: {
         _id: from?._id,
-        display: from?.displayName,
+        displayName: from?.displayName,
         avatarUrl: from?.avatarUrl,
       },
     });
   } catch (error) {
-    console.error("Error accepting friend request:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error accepting friend request", error);
+    return res.status(500).json({ message: "System error" });
   }
 };
 
@@ -110,75 +111,78 @@ export const acceptFriendRequest = async (req, res) => {
 export const declineFriendRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
-    const userId = req.user._id; // from auth middleware
+    const userId = req.user._id;
+
     const request = await FriendRequest.findById(requestId);
 
     if (!request) {
       return res.status(404).json({ message: "Friend request not found" });
     }
+
     if (request.to.toString() !== userId.toString()) {
-      return res.status(403).json({
-        message: "You are not authorized to decline this friend request",
-      });
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to decline this request" });
     }
 
     await FriendRequest.findByIdAndDelete(requestId);
-    return res.status(200).json({ message: "Friend request declined" });
+
+    return res.sendStatus(204);
   } catch (error) {
-    console.error("Error declining friend request:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error declining friend request", error);
+    return res.status(500).json({ message: "System error" });
   }
 };
 
 // @ts-ignore
 export const getAllFriends = async (req, res) => {
   try {
-    const userId = req.user._id; // from auth middleware
+    const userId = req.user._id;
 
     const friendships = await Friend.find({
-      $or: [{ userA: userId }, { userB: userId }],
+      $or: [
+        {
+          userA: userId,
+        },
+        {
+          userB: userId,
+        },
+      ],
     })
-      .populate("userA", "_id displayName avatartUrl")
-      .populate("userB", "_id displayName avatartUrl")
+      .populate("userA", "_id displayName avatarUrl username")
+      .populate("userB", "_id displayName avatarUrl username")
       .lean();
 
     if (!friendships.length) {
       return res.status(200).json({ friends: [] });
     }
 
-    const friends = friendships.map((friend) =>
-      friend.userA._id.toString() === userId.toString()
-        ? friend.userB
-        : friend.userA
+    const friends = friendships.map((f) =>
+      f.userA._id.toString() === userId.toString() ? f.userB : f.userA
     );
 
     return res.status(200).json({ friends });
   } catch (error) {
-    console.error("Error fetching friends list:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error fetching friends list", error);
+    return res.status(500).json({ message: "System error" });
   }
 };
 
 // @ts-ignore
-
 export const getFriendRequests = async (req, res) => {
   try {
-    const userId = req.user._id; // from auth middleware
+    const userId = req.user._id;
 
     const populateFields = "_id username displayName avatarUrl";
 
-    const [receivedRequests, sentRequests] = await Promise.all([
-      FriendRequest.find({ to: userId })
-        .populate("from", populateFields)
-        .lean(),
-      FriendRequest.find({ from: userId })
-        .populate("to", populateFields)
-        .lean(),
+    const [sent, received] = await Promise.all([
+      FriendRequest.find({ from: userId }).populate("to", populateFields),
+      FriendRequest.find({ to: userId }).populate("from", populateFields),
     ]);
 
-    return res.status(200).json({ receivedRequests, sentRequests });
+    res.status(200).json({ sent, received });
   } catch (error) {
-    console.error("Error fetching friend requests:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error fetching friend requests", error);
+    return res.status(500).json({ message: "System error" });
   }
 };
