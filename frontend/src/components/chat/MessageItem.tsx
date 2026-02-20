@@ -25,7 +25,7 @@ const MessageItem = ({
     index === 0 ||
     new Date(message.createdAt).getTime() -
       new Date(prev?.createdAt || 0).getTime() >
-      300000; // 5 phút
+      300000; // 5 minutes
 
   const isGroupBreak = isShowTime || message.senderId !== prev?.senderId;
 
