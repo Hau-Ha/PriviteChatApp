@@ -25,7 +25,7 @@ const SendFriendRequestForm = ({
     <form onSubmit={onSubmit}>
       <div className="space-y-4">
         <span className="success-message">
-          Found <span className="font-semibold">@{searchedUsername}</span>
+          Found <span className="font-semibold">@{searchedUsername}</span> 🎉
         </span>
 
         <div className="space-y-4">
@@ -35,7 +35,7 @@ const SendFriendRequestForm = ({
           <Textarea
             id="message"
             rows={3}
-            placeholder=" ~ Can we be friends?..."
+            placeholder="Hi there ~ Can we be friends?..."
             className="glass border-border/50 focus:border-primary/50 transition-smooth resize-none"
             {...register("message")}
           />

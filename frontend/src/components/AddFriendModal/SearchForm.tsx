@@ -32,15 +32,15 @@ const SearchForm = ({
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="username" className="text-sm font-semibold">
-          Tìm bằng username
+          Search by username
         </Label>
 
         <Input
           id="username"
-          placeholder="Gõ tên username vào đây..."
+          placeholder="Enter username here..."
           className="glass border-border/50 focus:border-primary/50 transition-smooth"
           {...register("username", {
-            required: "Username không được bỏ trống",
+            required: "Username is required",
           })}
         ></Input>
         {errors.username && (
@@ -49,7 +49,7 @@ const SearchForm = ({
 
         {isFound === false && (
           <span className="error-message">
-            Không tìm thấy
+            User not found
             <span className="font-semibold">@{searchedUsername}</span>
           </span>
         )}
@@ -73,10 +73,10 @@ const SearchForm = ({
           className="flex-1 bg-gradient-chat text-white hover:opacity-90 transition-smooth"
         >
           {loading ? (
-            <span>Đang tìm ...</span>
+            <span>Searching...</span>
           ) : (
             <>
-              <Search className="size-4 mr-2" /> Tìm
+              <Search className="size-4 mr-2" /> Search
             </>
           )}
         </Button>
