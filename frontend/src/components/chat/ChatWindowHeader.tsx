@@ -48,14 +48,14 @@ const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
               <>
                 <UserAvatar
                   type={"sidebar"}
-                  name={otherUser?.displayName || "Unknown"}
+                  name={otherUser?.displayName || "Moji"}
                   avatarUrl={otherUser?.avatarUrl || undefined}
                 />
                 {/* todo: socket io */}
                 <StatusBadge
                   status={
                     onlineUsers.includes(otherUser?._id ?? "")
-                      ? "offline"
+                      ? "online"
                       : "offline"
                   }
                 />

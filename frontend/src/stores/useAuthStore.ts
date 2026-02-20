@@ -4,6 +4,7 @@ import { authService } from "@/services/authService";
 import type { AuthState } from "@/types/store";
 import { persist } from "zustand/middleware";
 import { useChatStore } from "./useChatStore";
+import { useSocketStore } from "@/stores/useSocketStore";
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -69,6 +70,12 @@ export const useAuthStore = create<AuthState>()(
 
       signOut: async () => {
         try {
+          // 1️⃣ disconnect socket
+          const { socket } = useSocketStore.getState();
+          socket?.disconnect();
+
+          // 2️⃣ clear socket store
+          useSocketStore.setState({ socket: null, onlineUsers: [] });
           get().clearState();
           await authService.signOut();
           toast.success(" Signed out successfully.");
